@@ -1,0 +1,79 @@
+// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+package com.ruchikarr.servlets;
+
+import com.google.gson.Gson;
+import com.ruchikarr.dao.RecipeDAO;
+import com.ruchikarr.models.Recipe;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+@WebServlet({"/api/search"})
+public class IngredientSearchServlet extends HttpServlet {
+   private RecipeDAO recipeDAO;
+   private Gson gson;
+
+   public IngredientSearchServlet() {
+   }
+
+   public void init() throws ServletException {
+      this.recipeDAO = new RecipeDAO();
+      this.gson = new Gson();
+      System.out.println("✅ IngredientSearchServlet initialized");
+   }
+
+   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      response.setContentType("application/json");
+      response.setCharacterEncoding("UTF-8");
+      response.setHeader("Access-Control-Allow-Origin", "*");
+
+      try {
+         String ingredients = request.getParameter("ingredients");
+         String region = request.getParameter("region");
+         String weather = request.getParameter("weather");
+         String timeStr = request.getParameter("time");
+         if (ingredients == null || ingredients.isEmpty()) {
+            response.setStatus(400);
+            PrintWriter out = response.getWriter();
+            out.print("{\"error\": \"Ingredients parameter is required\"}");
+            out.flush();
+            return;
+         }
+
+         String[] ingredientArray = ingredients.split(",");
+         int maxTime = timeStr != null ? Integer.parseInt(timeStr) : 0;
+         if (region == null) {
+            region = "All India";
+         }
+
+         if (weather == null) {
+            weather = "Pleasant";
+         }
+
+         System.out.println("Searching recipes with ingredients: " + ingredients);
+         List<Recipe> recipes = this.recipeDAO.searchByMultipleIngredients(ingredientArray, region, weather, maxTime);
+         String jsonResponse = this.gson.toJson(recipes);
+         PrintWriter out = response.getWriter();
+         out.print(jsonResponse);
+         out.flush();
+         System.out.println("✅ Found " + recipes.size() + " recipes");
+      } catch (Exception var12) {
+         System.err.println("❌ Error in IngredientSearchServlet: " + var12.getMessage());
+         var12.printStackTrace();
+         response.setStatus(500);
+         PrintWriter out = response.getWriter();
+         out.print("{\"error\": \"" + var12.getMessage() + "\"}");
+         out.flush();
+      }
+
+   }
+
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      this.doGet(request, response);
+   }
+}
