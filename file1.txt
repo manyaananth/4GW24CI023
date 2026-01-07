@@ -1,0 +1,10 @@
+Git Learning Journey
+
+Why I am learning Git
+I am learning Git to understand version control, collaboration, and safe experimentation
+while developing projects.
+
+What I learned today
+- Git tracks changes, not just files
+- Commits act like snapshots
+- Local practice helps avoid mistakes on GitHub
